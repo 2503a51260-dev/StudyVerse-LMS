@@ -20,4 +20,4 @@ services:
 databases:
   - name: studyverse-db
     databaseName: studyverse_lms
-    user: studyverse_user
+   
