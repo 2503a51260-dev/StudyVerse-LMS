@@ -1,1 +1,107 @@
-{% extends "base.html" %}{% block title %}Dashboard · StudyVerse{% endblock %}{% block content %}<section class="hero"><p class="eyebrow">STUDENT DASHBOARD</p><h1>Your next chapter starts here.</h1><p>Welcome to StudyVerse — your courses, assignments, and learning space in one place.</p></section><h2>Your courses</h2><section class="grid">{% for course in courses %}<article class="course"><p class="eyebrow">COURSE {{ loop.index }}</p><h3>{{ course.title }}</h3><p>{{ course.description }}</p><small>Instructor: {{ course.instructor }}</small></article>{% else %}<p>No courses available yet.</p>{% endfor %}</section><h2>Assignments</h2>{% for a in assignments %}<article class="course"><h3>{{ a.title }}</h3><p>{{ a.description }}</p><small>Due: {{ a.due_date or 'Not set' }}</small></article>{% else %}<p class="muted">No assignments have been added yet.</p>{% endfor %}{% endblock %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyVerse | Smart Learning</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <h2>✨ StudyVerse</h2>
+    <p class="muted">YOUR LEARNING SPACE</p>
+    <button onclick="showPage('dashboard')">🏠 Dashboard</button>
+    <button onclick="showPage('courses')">📚 My Courses</button>
+    <button onclick="showPage('assignments')">📝 Assignments</button>
+    <button onclick="showPage('quizzes')">🧠 Quizzes</button>
+    <button onclick="showPage('analytics')">📊 Analytics</button>
+    <button onclick="showPage('assistant')">🤖 AI Study Buddy</button>
+  </aside>
+
+  <main class="main">
+    <header>
+      <div>
+        <p class="muted">YOUR PERSONAL LEARNING SPACE</p>
+        <h1 id="pageTitle">Hey, Learner! 👋</h1>
+        <p>Small progress every day leads to big results.</p>
+      </div>
+     <div style="display:flex; align-items:center; gap:12px;">
+  <span id="userName">Welcome, Student!</span>
+  <form action="{{ url_for('logout') }}" method="POST">
+    <button class="primary" type="submit">🚪 Logout</button>
+  </form>
+</div>
+    </header>
+
+    <section class="stats">
+      <article class="card">
+        <p>📚 Enrolled Courses</p>
+        <h2 id="courseCount">0</h2>
+      </article>
+      <article class="card">
+        <p>✅ Completed Tasks</p>
+        <h2 id="taskCount">0</h2>
+      </article>
+      <article class="card">
+        <p>🎯 Average Quiz Score</p>
+        <h2 id="averageScore">0%</h2>
+      </article>
+      <article class="card">
+        <p>🔥 Study Streak</p>
+        <h2 id="streak">0 days</h2>
+      </article>
+    </section>
+
+    <section id="dashboard" class="panel">
+      <h2>🚀 Your Learning Overview</h2>
+      <div id="courseList" class="courses"></div>
+      <h3>📈 Weekly Learning Analytics</h3>
+      <canvas id="progressChart"></canvas>
+    </section>
+
+    <section id="courses" class="panel hidden">
+      <h2>📚 My Courses</h2>
+      <div id="allCourses" class="courses"></div>
+    </section>
+
+    <section id="assignments" class="panel hidden">
+      <h2>📝 Assignments</h2>
+      <form id="assignmentForm">
+        <input id="assignmentTitle" placeholder="Assignment title" required>
+        <input id="assignmentDue" type="date" required>
+        <button class="primary" type="submit">Add Assignment</button>
+      </form>
+      <div id="assignmentList"></div>
+    </section>
+
+    <section id="quizzes" class="panel hidden">
+      <h2>🧠 Quick Quiz</h2>
+      <p>Which language is commonly used with Flask?</p>
+      <button onclick="answerQuiz('Python')">Python</button>
+      <button onclick="answerQuiz('Java')">Java</button>
+      <button onclick="answerQuiz('C++')">C++</button>
+      <p id="quizResult"></p>
+    </section>
+
+    <section id="analytics" class="panel hidden">
+      <h2>📊 Learning Analytics</h2>
+      <p>Your progress is based on your recorded learning activity.</p>
+      <canvas id="analyticsChart"></canvas>
+      <div id="analyticsSummary"></div>
+    </section>
+
+    <section id="assistant" class="panel hidden">
+      <h2>🤖 AI Study Buddy</h2>
+      <p>Get a study suggestion based on your current progress.</p>
+      <button class="primary" onclick="getRecommendation()">
+        Generate Study Plan
+      </button>
+      <div id="recommendation"></div>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
