@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: studyverse-lms
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: studyverse-db
+          property: connectionString
+      - key: GMAIL_ADDRESS
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+databases:
+  - name: studyverse-db
+    databaseName: studyverse_lms
+    user: studyverse_user
