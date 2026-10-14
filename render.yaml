@@ -13,11 +13,9 @@ services:
         fromDatabase:
           name: studyverse-db
           property: connectionString
-      - key: GMAIL_ADDRESS
-        sync: false
-      - key: GMAIL_APP_PASSWORD
-        sync: false
+     
 databases:
   - name: studyverse-db
+    plan: free
     databaseName: studyverse_lms
     user: studyverse_user
