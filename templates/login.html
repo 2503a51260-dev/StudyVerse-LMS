@@ -1,1 +1,296 @@
-{% extends "base.html" %}{% block title %}Sign in · StudyVerse{% endblock %}{% block content %}<section class="card"><p class="eyebrow">WELCOME BACK</p><h1>Sign in to StudyVerse</h1><p class="muted">Continue learning from any device.</p><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Email address</label><input name="email" type="email" autocomplete="email" required maxlength="254"><label>Password</label><input name="password" type="password" autocomplete="current-password" required><button>Sign in</button></form><p><a href="{{ url_for('forgot_password') }}">Forgot password?</a></p><p>New student? <a href="{{ url_for('signup') }}">Create an account</a></p></section>{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if page == "register" %}Create account{% elif page == "forgot" %}Email sign-in{% else %}Login{% endif %} | StudyVerse</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #211849, #7657f6, #ff77b7);
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 410px;
+      padding: 36px;
+      border-radius: 24px;
+      background: white;
+      box-shadow: 0 20px 60px #160b3544;
+    }
+
+    .logo {
+      font-size: 38px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #302454;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #77718c;
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 8px;
+      font-weight: bold;
+      color: #302454;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #ded8f1;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid #a998ff;
+      border-color: #7657f6;
+    }
+
+    .password-wrap {
+      display: flex;
+      gap: 8px;
+    }
+
+    .password-wrap input { flex: 1; min-width: 0; }
+
+    .toggle {
+      border: 0;
+      border-radius: 10px;
+      padding: 0 12px;
+      background: #eee9ff;
+      color: #6045d6;
+      cursor: pointer;
+    }
+
+    .forgot-link-container {
+      text-align: right;
+      margin-top: 10px;
+    }
+
+    .forgot-link {
+      color: #7657f6;
+      font-size: 14px;
+      text-decoration: none;
+      font-weight: 500;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+
+    .forgot-link:hover {
+      text-decoration: underline;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .login-button {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      border: 0;
+      border-radius: 12px;
+      background: linear-gradient(90deg, #7657f6, #b05bf5);
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .login-button:hover { opacity: 0.9; }
+
+    .error {
+      color: #c62848;
+      background: #fff0f3;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .footer {
+      text-align: center;
+      color: #89839b;
+      font-size: 12px;
+      margin-top: 22px;
+    }
+  </style>
+</head>
+<body>
+  <main class="login-card">
+    <div class="logo">✨</div>
+    {% if page == "forgot" %}
+      <h1>Sign in with email code</h1>
+      <p class="subtitle">Request a one-time sign-in code sent to your account email.</p>
+    {% elif page == "register" %}
+      <h1>Create your account</h1>
+      <p class="subtitle">Your next chapter starts here ✨</p>
+    {% else %}
+      <h1>Welcome to StudyVerse</h1>
+      <p class="subtitle">Your learning journey starts here 🚀</p>
+    {% endif %}
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <p class="error" role="alert">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if page == "forgot" %}
+      {% if otp_pending %}
+        <p class="subtitle">Enter the six-digit code sent to {{ otp_email }}.</p>
+        <form action="{{ url_for('forgot_password') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="verify">
+          <label for="otp">Email sign-in code</label>
+          <input
+            id="otp"
+            name="otp"
+            type="text"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            placeholder="Enter 6-digit code"
+            required
+          >
+          <button class="login-button" type="submit">Verify code →</button>
+        </form>
+      {% else %}
+        <form action="{{ url_for('forgot_password') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="request">
+          <label for="role">Sign in as</label>
+          <select id="role" name="role" required>
+            <option value="student" {% if selected_role == "student" %}selected{% endif %}>Student</option>
+            <option value="instructor" {% if selected_role == "instructor" %}selected{% endif %}>Instructor</option>
+          </select>
+          <label for="email">Account email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="Enter your registered email"
+            required
+          >
+          <button class="login-button" type="submit">Email me a sign-in code →</button>
+        </form>
+      {% endif %}
+      <div class="forgot-link-container">
+        <a class="forgot-link" href="{{ url_for('login') }}">Back to login</a>
+      </div>
+    {% elif page == "register" %}
+      <form action="{{ url_for('register') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="display_name">Your name</label>
+        <input id="display_name" name="display_name" type="text" maxlength="80" autocomplete="name" placeholder="How should we call you?" required>
+
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" minlength="3" maxlength="32" autocomplete="username" placeholder="Choose a username" required>
+
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com" required>
+
+        <label for="role">I’m joining as</label>
+        <select id="role" name="role" required>
+          <option value="student" {% if selected_role != "instructor" %}selected{% endif %}>Student</option>
+          <option value="instructor" {% if selected_role == "instructor" %}selected{% endif %}>Instructor</option>
+        </select>
+
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" minlength="10" maxlength="128" autocomplete="new-password" placeholder="At least 10 characters" required>
+
+        <label for="password_confirmation">Confirm password</label>
+        <input id="password_confirmation" name="password_confirmation" type="password" minlength="10" maxlength="128" autocomplete="new-password" placeholder="Enter it again" required>
+
+        <button class="login-button" type="submit">Create account →</button>
+      </form>
+      <div class="forgot-link-container">
+        <a class="forgot-link" href="{{ url_for('login') }}">Already have an account? Sign in</a>
+      </div>
+    {% else %}
+      <form id="auth-form" action="{{ url_for('login') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="role">Sign in as</label>
+        <select id="role" name="role" required>
+          <option value="student">Student</option>
+          <option value="instructor">Instructor</option>
+        </select>
+
+        <label for="username">Username or email</label>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          placeholder="Enter your username or email"
+          autocomplete="username"
+          required
+        >
+
+        <label for="password">Password</label>
+        <div class="password-wrap">
+          <input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+          >
+          <button class="toggle" type="button" onclick="togglePassword()">
+            Show
+          </button>
+        </div>
+        <div class="forgot-link-container">
+          <a class="forgot-link" href="{{ url_for('forgot_password') }}">Forgot password? Email me a code</a>
+        </div>
+
+        <button class="login-button" type="submit">Login →</button>
+      </form>
+        <div class="forgot-link-container" style="text-align:center; margin-top:18px;">
+          <a class="forgot-link" href="{{ url_for('register') }}">New to StudyVerse? Create an account</a>
+        </div>
+    {% endif %}
+
+    <p class="footer">Learn • Grow • Achieve ✨</p>
+  </main>
+
+  {% if page == "login" %}
+    <script>
+    function togglePassword() {
+      const password = document.getElementById("password");
+      const button = document.querySelector(".toggle");
+
+      if (password.type === "password") {
+        password.type = "text";
+        button.textContent = "Hide";
+      } else {
+        password.type = "password";
+        button.textContent = "Show";
+      }
+    }
+    </script>
+  {% endif %}
+</body>
+</html>

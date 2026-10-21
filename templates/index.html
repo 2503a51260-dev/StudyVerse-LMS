@@ -1,106 +1,240 @@
 <!DOCTYPE html>
-<html lang="en"><head>
+<html lang="en">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyVerse | Smart Learning</title>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>StudyVerse | Your learning space</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="{{ url_for('static', filename='script.js') }}" defer></script>
 </head>
-<body>
+<body data-role="{{ role }}">
   <aside class="sidebar">
-    <h2>✨ StudyVerse</h2>
-    <p class="muted">YOUR LEARNING SPACE</p>
-    <button onclick="showPage('dashboard')">🏠 Dashboard</button>
-    <button onclick="showPage('courses')">📚 My Courses</button>
-    <button onclick="showPage('assignments')">📝 Assignments</button>
-    <button onclick="showPage('quizzes')">🧠 Quizzes</button>
-    <button onclick="showPage('analytics')">📊 Analytics</button>
-    <button onclick="showPage('assistant')">🤖 AI Study Buddy</button>
+    <a class="brand" href="/" aria-label="StudyVerse home">
+      <span class="brand-mark">s</span>
+      <span>studyverse<span class="brand-dot">.</span></span>
+    </a>
+    <p class="sidebar-label">YOUR SPACE</p>
+    <nav class="nav-list" aria-label="Main navigation">
+      <button class="nav-item active" data-page="dashboard"><span>⌂</span> Overview</button>
+      <button class="nav-item" data-page="courses"><span>▦</span> My courses</button>
+      <button class="nav-item" data-page="classrooms"><span>▣</span> Classes</button>
+      <button class="nav-item" data-page="assignments"><span>▤</span> Assignments <span class="nav-count" id="navAssignmentCount">0</span></button>
+      <button class="nav-item" data-page="quizzes"><span>✳</span> Quick quiz</button>
+      <button class="nav-item" data-page="analytics"><span>⌁</span> Progress</button>
+      <button class="nav-item ai-nav" data-page="assistant"><span>✦</span> AI study buddy <span class="new-tag">AI</span></button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-note">
+        <span class="note-icon">✦</span>
+        <strong>Small steps, big wins.</strong>
+        <span>Your next study session is one click away.</span>
+        <button data-page="assistant">Ask your AI buddy <span>→</span></button>
+      </div>
+      <div class="profile-row">
+        <div class="avatar">{{ display_name[:1]|upper }}</div>
+        <div class="profile-copy"><strong>{{ display_name }}</strong><span>{{ role|title }} account</span></div>
+        <form action="{{ url_for('logout') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="icon-button logout-button" type="submit" aria-label="Log out" title="Log out">↗</button>
+        </form>
+      </div>
+    </div>
   </aside>
 
   <main class="main">
-    <header>
-      <div>
-        <p class="muted">YOUR PERSONAL LEARNING SPACE</p>
-        <h1 id="pageTitle">Hey, Learner! 👋</h1>
-        <p>Small progress every day leads to big results.</p>
+    <header class="topbar">
+      <div class="breadcrumb"><span>My workspace</span><span class="crumb-slash">/</span><strong id="breadcrumbPage">Overview</strong></div>
+      <div class="topbar-actions">
+        <span class="today-label" id="todayLabel"></span>
+        <form action="{{ url_for('logout') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="top-logout" type="submit">Log out</button>
+        </form>
+        <div class="top-avatar">{{ display_name[:1]|upper }}</div>
       </div>
-     <div style="display:flex; align-items:center; gap:12px;">
-  <span id="userName">Welcome, Student!</span>
-  <form action="{{ url_for('logout') }}" method="POST">
-    <button class="primary" type="submit">🚪 Logout</button>
-  </form>
-</div>
     </header>
 
-    <section class="stats">
-      <article class="card">
-        <p>📚 Enrolled Courses</p>
-        <h2 id="courseCount">0</h2>
-      </article>
-      <article class="card">
-        <p>✅ Completed Tasks</p>
-        <h2 id="taskCount">0</h2>
-      </article>
-      <article class="card">
-        <p>🎯 Average Quiz Score</p>
-        <h2 id="averageScore">0%</h2>
-      </article>
-      <article class="card">
-        <p>🔥 Study Streak</p>
-        <h2 id="streak">0 days</h2>
-      </article>
+    <section id="dashboard" class="page-section">
+      <div class="welcome-row">
+        <div>
+          <p class="eyebrow"><span id="welcomeDate"></span><span class="live-dot"></span> YOU'RE ON TRACK</p>
+          <h1>Hey, {{ display_name }} <span class="wave">✌️</span></h1>
+          <p class="page-subtitle">A little progress today goes a long way. What are we learning?</p>
+        </div>
+        <button class="button button-dark" data-page="courses">Explore courses <span>↗</span></button>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-copy">
+          <span class="hero-kicker"><span>✦</span> YOUR WEEKLY CHECK-IN</span>
+          <h2>You're building<br>great momentum.</h2>
+          <p>Keep showing up for your goals. Your future self is already proud.</p>
+          <button class="button button-light" data-page="analytics">See my progress <span>→</span></button>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+          <div class="hero-spark spark-one">✳</div><div class="hero-spark spark-two">✦</div>
+          <div class="hero-stat"><span>YOUR FOCUS</span><strong>25<span> min</span></strong><small>one session at a time</small></div>
+        </div>
+      </div>
+
+      <div class="section-heading">
+        <div><p class="eyebrow">STARTER COURSE CATALOG · SAMPLE PROGRESS</p><h2>Your learning snapshot</h2></div>
+        <button class="text-button" data-page="analytics">Full report <span>→</span></button>
+      </div>
+      <div class="stats-grid">
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-icon lavender">▦</span><span class="stat-caption">THIS TERM</span></div>
+          <strong id="courseCount">4</strong><span class="stat-label">Starter courses</span>
+          <div class="mini-track"><span style="width:68%"></span></div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-icon mint">✓</span><span class="stat-caption">KEEP GOING</span></div>
+          <strong id="taskCount">0</strong><span class="stat-label">Tasks completed</span>
+          <div class="stat-foot">Every finish is a win <span>↗</span></div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-icon peach">✳</span><span class="stat-caption">SAMPLE QUIZ AVG</span></div>
+          <strong id="averageScore">76<span class="value-unit">%</span></strong><span class="stat-label">Sample data · not your results</span>
+          <div class="stat-foot">Keep that streak alive <span>✦</span></div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-icon blue">♨</span><span class="stat-caption">SAMPLE STREAK</span></div>
+          <strong id="streak">5<span class="value-unit"> days</span></strong><span class="stat-label">Sample value · streaks not tracked</span>
+          <div class="streak-dots" aria-label="Five day study streak"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </article>
+      </div>
+
+      <div class="content-grid">
+        <section class="content-card course-card">
+          <div class="card-heading">
+            <div><p class="eyebrow">PICK UP WHERE YOU LEFT OFF</p><h2>Jump back in</h2></div>
+            <button class="text-button" data-page="courses">All courses <span>→</span></button>
+          </div>
+          <div id="courseList" class="course-list"></div>
+        </section>
+        <section class="content-card deadlines-card">
+          <div class="card-heading">
+            <div><p class="eyebrow">STAY AHEAD</p><h2>Coming up</h2></div>
+            <button class="text-button" data-page="assignments">All tasks <span>→</span></button>
+          </div>
+          <div id="upcomingList" class="upcoming-list"></div>
+          <button class="deadline-add" data-page="assignments"><span>＋</span> Add a personal task</button>
+        </section>
+      </div>
     </section>
 
-    <section id="dashboard" class="panel">
-      <h2>🚀 Your Learning Overview</h2>
-      <div id="courseList" class="courses"></div>
-      <h3>📈 Weekly Learning Analytics</h3>
-      <canvas id="progressChart"></canvas>
+    <section id="courses" class="page-section hidden">
+      <div class="page-heading">
+        <div><p class="eyebrow">YOUR LEARNING PATH</p><h1>My courses</h1><p class="page-subtitle">Your courses, your pace. Keep the momentum going.</p></div>
+      </div>
+      <div id="allCourses" class="all-courses-grid"></div>
     </section>
 
-    <section id="courses" class="panel hidden">
-      <h2>📚 My Courses</h2>
-      <div id="allCourses" class="courses"></div>
+    <section id="classrooms" class="page-section hidden">
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">YOUR CLASSROOM</p>
+          <h1 id="classroomPageTitle">Classes</h1>
+          <p class="page-subtitle" id="classroomPageSubtitle">Share assignments, due dates, and class materials.</p>
+        </div>
+      </div>
+      <div class="classroom-tools">
+        {% if role == "instructor" %}
+          <form id="createClassForm" class="content-card classroom-form">
+            <p class="eyebrow">INSTRUCTOR TOOLS</p><h2>Create a class</h2>
+            <label for="className">Class name</label>
+            <input id="className" name="name" maxlength="120" placeholder="e.g. Biology 101" required>
+            <label for="classDescription">Description <span>optional</span></label>
+            <textarea id="classDescription" name="description" maxlength="1000" rows="2" placeholder="What will students learn?"></textarea>
+            <button class="button button-dark" type="submit">Create class <span>＋</span></button>
+            <p class="form-message" id="classroomMessage" role="status"></p>
+          </form>
+        {% else %}
+          <form id="joinClassForm" class="content-card classroom-form">
+            <p class="eyebrow">JOIN A CLASS</p><h2>Have a class code?</h2>
+            <p class="form-help">Ask your instructor for the code, then enter it here.</p>
+            <label for="joinCode">Class code</label>
+            <input id="joinCode" name="join_code" minlength="6" maxlength="8" placeholder="e.g. AB12CD34" required>
+            <button class="button button-dark" type="submit">Join class <span>→</span></button>
+            <p class="form-message" id="classroomMessage" role="status"></p>
+          </form>
+        {% endif %}
+        <div id="classroomList" class="classroom-list"></div>
+      </div>
     </section>
 
-    <section id="assignments" class="panel hidden">
-      <h2>📝 Assignments</h2>
-      <form id="assignmentForm">
-        <input id="assignmentTitle" placeholder="Assignment title" required="">
-        <input id="assignmentDue" type="date" required="">
-        <button class="primary" type="submit">Add Assignment</button>
-      </form>
-      <div id="assignmentList"></div>
+    <section id="assignments" class="page-section hidden">
+      <div class="page-heading">
+        <div><p class="eyebrow">MAKE IT HAPPEN</p><h1>Assignments & tasks</h1><p class="page-subtitle">{% if role == "instructor" %}Create classes and post due-dated assignments from the Classes page.{% else %}Keep track of personal study goals; class assignments live in Classes.{% endif %}</p></div>
+      </div>
+      <div class="assignment-layout">
+        <section class="content-card">
+          <div class="card-heading"><div><p class="eyebrow">YOUR TO-DO LIST</p><h2>Tasks that move you forward</h2></div></div>
+          <div id="assignmentList" class="assignment-list"></div>
+        </section>
+        {% if role == "student" %}
+        <aside class="content-card add-task-card">
+          <p class="eyebrow">MAKE A PLAN</p><h2>Add a personal task</h2>
+          <p class="form-help">Create a reminder for your own study goals. You can attach your work when you’re ready.</p>
+          <form id="assignmentForm" class="task-form">
+            <label for="assignmentTitle">What are you working on?</label>
+            <input id="assignmentTitle" name="title" maxlength="200" placeholder="e.g. Finish the Python practice set" required>
+            <label for="assignmentDue">When is it due?</label>
+            <input id="assignmentDue" name="due_date" type="date" required>
+            <label class="file-label" for="assignmentFile">Attach your work <span>optional · PDF, slides, docs, images & more</span></label>
+            <input id="assignmentFile" class="file-input" name="file" type="file" accept=".pdf,.ppt,.pptx,.doc,.docx,.txt,.csv,.xlsx,.xls,.png,.jpg,.jpeg,.zip,.md,.rtf">
+            <div id="fileName" class="file-name" aria-live="polite">No file selected</div>
+            <button class="button button-dark form-submit" type="submit">Add to my tasks <span>→</span></button>
+            <p id="assignmentMessage" class="form-message" role="status"></p>
+          </form>
+        </aside>
+        {% else %}
+        <aside class="content-card add-task-card"><p class="eyebrow">INSTRUCTOR TIP</p><h2>Post work to a class</h2><p class="form-help">Open Classes, choose one of your courses, and post instructions, a due date, and optional reference files. Students enrolled with your class code can submit their work there.</p><button class="button button-dark" data-page="classrooms">Open my classes <span>→</span></button></aside>
+        {% endif %}
+      </div>
     </section>
 
-    <section id="quizzes" class="panel hidden">
-      <h2>🧠 Quick Quiz</h2>
-      <p>Which language is commonly used with Flask?</p>
-      <button onclick="answerQuiz('Python')">Python</button>
-      <button onclick="answerQuiz('Java')">Java</button>
-      <button onclick="answerQuiz('C++')">C++</button>
-      <p id="quizResult"></p>
+    <section id="quizzes" class="page-section hidden">
+      <div class="page-heading"><div><p class="eyebrow">A QUICK BRAIN BREAK</p><h1>Quick quiz</h1><p class="page-subtitle">Tiny challenges, big brain energy.</p></div></div>
+      <section class="content-card quiz-card">
+        <span class="stat-icon lavender">✳</span><p class="eyebrow">PYTHON BASICS · 1 QUESTION</p>
+        <h2>Which language is commonly used with Flask?</h2>
+        <div class="quiz-options">
+          <button class="quiz-option" data-answer="Python">Python <span>→</span></button>
+          <button class="quiz-option" data-answer="Java">Java <span>→</span></button>
+          <button class="quiz-option" data-answer="C++">C++ <span>→</span></button>
+        </div>
+        <p id="quizResult" class="quiz-result" role="status"></p>
+      </section>
     </section>
 
-    <section id="analytics" class="panel hidden">
-      <h2>📊 Learning Analytics</h2>
-      <p>Your progress is based on your recorded learning activity.</p>
-      <canvas id="analyticsChart"></canvas>
-      <div id="analyticsSummary"></div>
+    <section id="analytics" class="page-section hidden">
+      <div class="page-heading"><div><p class="eyebrow">STARTER COURSE CATALOG</p><h1>Your progress</h1><p class="page-subtitle">Course progress below is sample content from the starter catalog, not personal activity tracking.</p></div></div>
+      <section class="content-card chart-card"><div class="card-heading"><div><p class="eyebrow">SAMPLE COURSE DATA</p><h2>Progress by course</h2></div></div><canvas id="analyticsChart" aria-label="Sample course progress chart"></canvas><div id="analyticsSummary" class="analytics-summary"></div></section>
     </section>
 
-    <section id="assistant" class="panel hidden">
-      <h2>🤖 AI Study Buddy</h2>
-      <p>Get a study suggestion based on your current progress.</p>
-      <button class="primary" onclick="getRecommendation()">
-        Generate Study Plan
-      </button>
-      <div id="recommendation"></div>
+    <section id="assistant" class="page-section hidden">
+      <div class="page-heading"><div><p class="eyebrow">YOUR AI-POWERED STUDY SIDEKICK</p><h1>Study buddy <span class="ai-badge">AI</span></h1><p class="page-subtitle">Ask questions, break down tough topics, or get a study plan.</p></div></div>
+      <section class="chat-card">
+        <div class="chat-header"><div class="chat-avatar">✦</div><div><strong>Your StudyVerse buddy</strong><span><i class="online-dot"></i> Ready when you are</span></div><span class="powered-label">POWERED BY AI</span></div>
+        <div id="chatMessages" class="chat-messages" aria-live="polite">
+          <div class="chat-message assistant-message"><span class="message-avatar">✦</span><div><p>Hey {{ display_name }}! 👋 I’m here to make studying feel less overwhelming. What are you working on today?</p><small>Study buddy</small></div></div>
+        </div>
+        <div id="chatNotice" class="chat-notice" role="status"></div>
+        <form id="chatForm" class="chat-form">
+          <label class="sr-only" for="chatInput">Message your study buddy</label>
+          <textarea id="chatInput" rows="1" maxlength="3000" placeholder="Ask anything about what you're learning..." required></textarea>
+          <button class="send-button" type="submit" aria-label="Send message">↑</button>
+        </form>
+        <p class="chat-footnote">AI can make mistakes. Double-check important information.</p>
+      </section>
     </section>
   </main>
-
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
-
-
-</body></html>
+</body>
+</html>
